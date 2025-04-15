@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Registrasi & Kode Pos</title>
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- jQuery UI for Autocomplete -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <style>
+    body {
+      background-color: #f0fdf4;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      color: #065f46;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      color: #064e3b;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1fae5;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #10b981;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #059669;
+    }
+
+    .result-box {
+      background-color: #d1fae5;
+      color: #065f46;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .error-message {
+      color: #dc2626;
+      font-size: 14px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    input.error {
+      border-color: #dc2626;
+      background-color: #fef2f2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Form Registrasi Mahasiswa -->
+  <div class="container">
+    <h2>Form Registrasi Mahasiswa</h2>
+    <form id="formReg">
+      <label for="nama">Nama Mahasiswa</label>
+      <input type="text" id="nama" name="nama" placeholder="Masukkan nama mahasiswa">
+      <div id="error-nama" class="error-message"></div>
+
+      <label for="nim">NIM</label>
+      <input type="text" id="nim" name="nim" placeholder="Masukkan NIM">
+      <div id="error-nim" class="error-message"></div>
+
+      <label for="matkul">Mata Kuliah</label>
+      <input type="text" id="matkul" name="matkul" placeholder="Masukkan mata kuliah">
+      <div id="error-matkul" class="error-message"></div>
+
+      <label for="dosen">Dosen</label>
+      <input type="text" id="dosen" name="dosen" placeholder="Masukkan nama dosen">
+      <div id="error-dosen" class="error-message"></div>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+  <!-- Form Pencarian Kode Pos -->
+  <div class="container">
+    <h2>Pencarian Kode Pos</h2>
+    <label for="provinsi">Provinsi</label>
+    <select id="provinsi">
+      <option value="">Pilih Provinsi</option>
+    </select>
+
+    <label for="kota">Kota/Kabupaten</label>
+    <select id="kota">
+      <option value="">Pilih Kota/Kabupaten</option>
+    </select>
+
+    <button id="btnCari">Cari Kode Pos</button>
+    <div id="kodepos" class="result-box"></div>
+  </div>
+
+  <!-- Dropdown Dinamis Kota berdasarkan Provinsi -->
+  <div class="container">
+    <h2>Dropdown Dinamis</h2>
+    <label for="provinsi-dinamis">Provinsi</label>
+    <select id="provinsi-dinamis">
+      <option value="">Pilih Provinsi</option>
+    </select>
+
+    <label for="kota-dinamis">Kota/Kabupaten</label>
+    <select id="kota-dinamis">
+      <option value="">Pilih Kota/Kabupaten</option>
+    </select>
+  </div>
+
+  <script>
+    $(document).ready(function () {
+      const daftarNama = [
+        "Abdan Hafidz", "Ahmad Zaki", "Aulia Rahman", "Budi Santoso",
+        "Citra Dewi", "Dian Saputra", "Eka Prasetyo", "Farah Nabila"
+      ];
+      $("#nama").autocomplete({ source: daftarNama });
+
+      // Data Dummy Provinsi dan Kota
+      const dataProvinsi = [
+        { id: 1, nama: "Jawa Barat", kota: [{ id: 1, nama: "Bandung" }, { id: 2, nama: "Bekasi" }] },
+        { id: 2, nama: "Jawa Timur", kota: [{ id: 3, nama: "Surabaya" }, { id: 4, nama: "Malang" }] },
+        { id: 3, nama: "Bali", kota: [{ id: 5, nama: "Denpasar" }] },
+      ];
+
+      // Populate dropdown Provinsi
+      dataProvinsi.forEach(provinsi => {
+        $('#provinsi, #provinsi-dinamis').append(`<option value="${provinsi.id}">${provinsi.nama}</option>`);
+      });
+
+      // Handle perubahan provinsi di form pencarian kode pos
+      $('#provinsi').on('change', function () {
+        const provinsiId = $(this).val();
+        if (provinsiId) {
+          const provinsiData = dataProvinsi.find(p => p.id == provinsiId);
+          $('#kota').empty().append('<option value="">Pilih Kota/Kabupaten</option>');
+          provinsiData.kota.forEach(kota => {
+            $('#kota').append(`<option value="${kota.id}">${kota.nama}</option>`);
+          });
+        }
+      });
+
+      // Handle perubahan provinsi di dropdown dinamis
+      $('#provinsi-dinamis').on('change', function () {
+        const provinsiId = $(this).val();
+        if (provinsiId) {
+          const provinsiData = dataProvinsi.find(p => p.id == provinsiId);
+          $('#kota-dinamis').empty().append('<option value="">Pilih Kota/Kabupaten</option>');
+          provinsiData.kota.forEach(kota => {
+            $('#kota-dinamis').append(`<option value="${kota.id}">${kota.nama}</option>`);
+          });
+        }
+      });
+
+      // Tombol "Cari Kode Pos"
+      $('#btnCari').on('click', function () {
+        const selectedCity = $('#kota option:selected').text();
+        $('#kodepos').html(`<strong>Kode Pos untuk ${selectedCity}:</strong> 12345`).fadeIn();
+      });
+
+      // Submit form registrasi
+      $('#formReg').on('submit', function (e) {
+        e.preventDefault();
+
+        let valid = true;
+        $('.error-message').html('');
+        $('input').removeClass('error');
+
+        const nama = $('#nama').val();
+        const nim = $('#nim').val();
+        const matkul = $('#matkul').val();
+        const dosen = $('#dosen').val();
+
+        if (!nama) {
+          $('#error-nama').html('Nama Mahasiswa wajib diisi.');
+          $('#nama').addClass('error');
+          valid = false;
+        }
+        if (!nim) {
+          $('#error-nim').html('NIM wajib diisi.');
+          $('#nim').addClass('error');
+          valid = false;
+        }
+        if (!matkul) {
+          $('#error-matkul').html('Mata Kuliah wajib diisi.');
+          $('#matkul').addClass('error');
+          valid = false;
+        }
+        if (!dosen) {
+          $('#error-dosen').html('Nama Dosen wajib diisi.');
+          $('#dosen').addClass('error');
+          valid = false;
+        }
+
+        if (valid) {
+          alert(`Registrasi berhasil!\n\nNama: ${nama}\nNIM: ${nim}\nMata Kuliah: ${matkul}\nDosen: ${dosen}`);
+          $(this)[0].reset();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
